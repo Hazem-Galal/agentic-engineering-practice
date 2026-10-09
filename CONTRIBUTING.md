@@ -10,7 +10,7 @@ For the layering rules, naming conventions and folder layout, see [`CLAUDE.md`](
 
 ### Prerequisites
 
-- **Node.js 18 or newer** (`npm run dev` uses `node --watch`, and `verify-app` uses the built-in `fetch`). Node 22 is what we test on.
+- **Node.js 20 or newer.** The locked `better-sqlite3` (12.x) supports Node 20, 22 and later only, so Node 18 won't install it reliably. Node 22 is what we test on.
 - **npm** (ships with Node).
 - **git**.
 - A C/C++ toolchain is only needed if npm can't download a prebuilt `better-sqlite3` binary for your platform.

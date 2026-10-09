@@ -8,6 +8,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 const STARTUP_TIMEOUT_MS = 10000;
+const HEALTH_REQUEST_TIMEOUT_MS = 1000;
 
 // Returns an error message, or null if every test ran and passed.
 function runTests() {
@@ -15,10 +16,12 @@ function runTests() {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'verify-app-'));
   const resultsFile = path.join(tmpDir, 'results.json');
   try {
-    const result = spawnSync('npx', ['jest', '--silent', '--json', `--outputFile=${resultsFile}`], {
+    // Run Jest's bin with node directly: no shell, so paths with spaces
+    // (common in Windows temp dirs) reach Jest as a single argument
+    const jestBin = require.resolve('jest/bin/jest', { paths: [ROOT] });
+    const result = spawnSync(process.execPath, [jestBin, '--silent', '--json', `--outputFile=${resultsFile}`], {
       cwd: ROOT,
       stdio: 'inherit',
-      shell: process.platform === 'win32',
     });
     if (result.status !== 0) return 'test suite did not pass';
     // Jest exits 0 when tests are skipped (.only, .skip) or marked .todo,
@@ -47,11 +50,13 @@ function findFreePort() {
 
 async function isHealthy(port) {
   try {
-    const res = await fetch(`http://localhost:${port}/health`);
+    const res = await fetch(`http://localhost:${port}/health`, {
+      signal: AbortSignal.timeout(HEALTH_REQUEST_TIMEOUT_MS),
+    });
     const body = await res.json();
     return res.status === 200 && body.status === 'ok';
   } catch {
-    return false; // server not listening yet
+    return false; // not listening yet, or the request timed out
   }
 }
 
