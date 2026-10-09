@@ -39,7 +39,7 @@ beforeEach(() => {
 ```
 
 - Every test starts from a clean database. Seed the rows a test needs inside `beforeEach` or the test itself, never rely on another test's data.
-- All test files share one in-memory DB per Jest worker, so always wipe in `beforeEach`.
+- Each test file gets its own in-memory DB (Jest isolates modules per file), so a file must create its own schema and can never see another file's data. Within a file, tests share the DB, so always wipe in `beforeEach`.
 - Build schema with `tests/schema.js`. Any schema change must also be made in `src/db/seed.js`.
 - Send the `x-api-key` header (`dev-key` unless `API_KEY` is set) for endpoints behind `authenticate`.
 

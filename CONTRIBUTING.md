@@ -102,7 +102,7 @@ chore: add .gitignore for node_modules, local DB, and MCP config
 npm test                                   # all tests
 npm run test:watch                         # re-run on file changes
 npx jest tests/tasks.test.js               # one file
-npx jest -t "filters by ?status=active"    # one test by name
+npx jest -t "filters by \?status=active"   # one test by name (-t is a regex: escape ? . ( etc.)
 ```
 
 The suite runs against an in-memory SQLite database. It needs `npm install` and nothing else: no `db:seed`, no running server, no extra environment variables, no network. If a test only passes after extra setup, the test is wrong. Fix it.
@@ -181,7 +181,7 @@ What this means in practice:
 - **Don't skip, disable or delete a test to get to green** (`it.skip`, `xit`, `describe.skip`, `.only`, commenting out assertions). If a test is wrong, fix the test in its own commit and explain why in the message.
 - **Don't use `git commit --no-verify`** to bypass checks.
 - **Test-first changes still go in green.** Fixes for the known gaps in `docs/prd.md` change behaviour, so write the failing test first, but commit the test **together with** the fix that makes it pass. Never commit the red test on its own.
-- **Run the full suite, not just the file you changed.** All test files share one in-memory database per Jest worker, so a change in one area can break another.
+- **Run the full suite, not just the file you changed.** Services, queries and the schema are shared across resources, so a change in one area can break another resource's tests.
 
 If you find the suite already failing on the branch you started from, stop and report it rather than committing on top of it.
 

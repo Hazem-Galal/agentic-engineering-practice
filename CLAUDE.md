@@ -20,7 +20,7 @@ npm run dev            # same, with node --watch; GET /health
 npm test               # all tests
 npm run verify-app     # tests + boot server and check GET /health; run before committing
 npx jest tests/tasks.test.js           # one file
-npx jest -t "filters by ?status=active" # one test by name
+npx jest -t "filters by \?status=active" # one test by name (-t is a regex: escape ? . ( etc.)
 ```
 
 `npm run db:reset` uses `rm -f taskr.db`, which fails under Windows cmd and also leaves the WAL files behind (`src/db/connection.js` enables `journal_mode = WAL`). On Windows/PowerShell: `Remove-Item taskr.db*; npm run db:seed`.
@@ -72,7 +72,7 @@ Details:
 ## Schema and tests
 
 - The schema is defined twice: in `src/db/seed.js` (dev DB) and in `tests/schema.js` (tests). Any schema change must be made in both.
-- Tests live in `tests/<resource>.test.js`. Each file sets `process.env.NODE_ENV = 'test'` before requiring `../src/index`, creates the schema in `beforeAll`, and wipes all tables in `beforeEach` (child tables first because of FKs). All test files share one in-memory DB per Jest worker.
+- Tests live in `tests/<resource>.test.js`. Each file sets `process.env.NODE_ENV = 'test'` before requiring `../src/index`, creates the schema in `beforeAll`, and wipes all tables in `beforeEach` (child tables first because of FKs). Jest gives each test file its own module registry, so each file opens its own `:memory:` DB; files never share schema or data.
 - Jest's `testMatch` is `**/tests/*.test.js`; a file named any other way won't run.
 
 Contribution workflow (commit convention, `verify-app`, no commits with failing tests) is in `CONTRIBUTING.md`.
