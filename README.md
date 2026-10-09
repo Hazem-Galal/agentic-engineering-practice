@@ -36,8 +36,9 @@ The server starts on port 3000. Visit `http://localhost:3000/health` to confirm 
 | Script | What it does |
 |---|---|
 | `npm start` | Start the server |
-| `npm run dev` | Start with file watching (Node 18+) |
+| `npm run dev` | Start with file watching (Node 20+) |
 | `npm test` | Run the test suite |
+| `npm run verify-app` | Run the tests, then boot the server and check `/health` (run before committing) |
 | `npm run db:seed` | Create schema and seed sample data |
 | `npm run db:reset` | Drop and re-seed the database |
 
@@ -57,3 +58,9 @@ Tests use Jest and supertest. The test suite runs against an in-memory database 
 npm test
 npm run test:watch
 ```
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).

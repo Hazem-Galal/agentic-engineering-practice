@@ -1,0 +1,4 @@
+node_modules/
+taskr.db*
+.claude/.mcp.json
+.env*

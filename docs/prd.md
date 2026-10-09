@@ -68,7 +68,7 @@ Tracked as tech debt. Each one changes behaviour, so it needs a test before it i
 - Most write endpoints have no authentication. A real auth model (for example JWT, with users acting as themselves) is not defined yet.
 - There are no cascade rules. Deleting a task that has comments or tags, or a user or project that has dependent rows, is rejected by the foreign-key constraint.
 - `PUT` endpoints do not re-validate fields (for example the email format on a user update, or referenced ids on a task update).
-- The code structure needs work: routes are in one file, SQL is inline and the schema is defined in two places (see `CLAUDE.md`).
+- The schema is defined in two places: `src/db/seed.js` and `tests/schema.js` (see `CLAUDE.md`).
 
 ## Success criteria
 

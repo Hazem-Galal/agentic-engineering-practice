@@ -1,4 +1,4 @@
-const { db } = require('../DB');
+const { db } = require('./connection');
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS users (
