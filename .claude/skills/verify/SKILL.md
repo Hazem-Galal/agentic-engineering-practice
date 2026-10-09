@@ -23,5 +23,7 @@ curl -s localhost:3123/health
 
 - `npm run verify-app` → `verify-app: OK - ...`, exit 0.
 - To check that it fails when it should, break something temporarily and run `git checkout` on that file afterwards:
-  - Tests pass but the server never listens: replace `require.main === module` in `src/index.js` with `false`. Expect FAILED after about 10s.
-  - Failing test: change an expected status in `tests/users.test.js`. Expect FAILED right away.
+  - Server never listens: replace `require.main === module` in `src/index.js` with `false`. Expect `FAILED - server exited during startup (0)`.
+  - Server crashes: add `throw new Error("boom")` before `app.listen`. Expect FAILED within about 3s, with the stack trace printed.
+  - Failing test: change an expected status in `tests/users.test.js`. Expect `FAILED - test suite did not pass`.
+  - Skipped test: change the first `test(` in `tests/tags.test.js` to `test.only(`. Expect `FAILED - 14 skipped ...`.

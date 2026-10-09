@@ -149,8 +149,8 @@ npm run verify-app
 
 `verify-app` is the end-to-end check to run before you commit. It does two things:
 
-1. Runs the full Jest suite (with `--silent`).
-2. Boots the real server (`src/index.js`) on a free port with an in-memory database and checks that `GET /health` returns `200` with `{ "status": "ok" }`.
+1. Runs the full Jest suite (with `--silent`). It fails if any test fails, **or if any test was skipped or left as a todo**. A stray `.only`, `.skip` or `.todo` fails the check even though plain `npm test` would exit `0`.
+2. Boots the real server (`src/index.js`) on a free port with an in-memory database and checks that `GET /health` returns `200` with `{ "status": "ok" }`. If the server exits during startup, it fails straight away and prints the server's error output. If the server never answers, it gives up after 10 seconds.
 
 It exits `0` and prints the following only when both steps succeed:
 
