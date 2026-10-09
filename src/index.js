@@ -1,6 +1,7 @@
 const express = require('express');
 const { PORT } = require('./utils/constants');
 const router = require('../routes');
+const { usersRouter } = require('./routes/users');
 const { requestLogger } = require('./middleware/request-logger');
 const { errorHandler } = require('./middleware/error-handler');
 
@@ -20,6 +21,7 @@ app.post('/webhooks/task-update', (req, res) => {
   res.json({ received: true });
 });
 
+app.use('/users', usersRouter);
 app.use(router);
 app.use(errorHandler);
 
