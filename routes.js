@@ -23,44 +23,6 @@ router.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// ─── Comments ────────────────────────────────────────────────────────────────
-
-router.get('/tasks/:id/comments', (req, res) => {
-  const taskId = parseInt(req.params.id);
-  const task = db.prepare('SELECT id FROM tasks WHERE id = ?').get(taskId);
-  if (!task) return res.status(404).json({ error: 'Task not found' });
-
-  const comments = db.prepare(
-    'SELECT c.*, u.name as user_name FROM comments c JOIN users u ON u.id = c.user_id WHERE c.task_id = ? ORDER BY c.created_at ASC'
-  ).all(taskId);
-  res.json(comments);
-});
-
-router.post('/tasks/:id/comments', (req, res) => {
-  const taskId = parseInt(req.params.id);
-  const { user_id, body } = req.body;
-
-  const task = db.prepare('SELECT id FROM tasks WHERE id = ?').get(taskId);
-  if (!task) return res.status(404).json({ error: 'Task not found' });
-
-  if (!body || !isNonEmptyString(body)) {
-    return res.status(400).json({ error: 'body is required' });
-  }
-  if (!user_id) {
-    return res.status(400).json({ error: 'user_id is required' });
-  }
-  const user = db.prepare('SELECT id FROM users WHERE id = ?').get(parseInt(user_id));
-  if (!user) return res.status(400).json({ error: 'user not found' });
-
-  const result = db.prepare(
-    'INSERT INTO comments (task_id, user_id, body) VALUES (?, ?, ?)'
-  ).run(taskId, parseInt(user_id), body);
-  const comment = db.prepare(
-    'SELECT c.*, u.name as user_name FROM comments c JOIN users u ON u.id = c.user_id WHERE c.id = ?'
-  ).get(result.lastInsertRowid);
-  res.status(201).json(comment);
-});
-
 // ─── Tags ─────────────────────────────────────────────────────────────────────
 
 router.get('/tags', (req, res) => {
