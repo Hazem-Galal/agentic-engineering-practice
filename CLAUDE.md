@@ -15,7 +15,7 @@ The parent folder's `CLAUDE.md` (the "Last Train" landing page) does not apply t
 ```bash
 npm install
 npm run db:seed        # create schema + sample data in taskr.db (skips if users exist)
-npm start              # node index.js, port 3000 (PORT env overrides)
+npm start              # node src/index.js, port 3000 (PORT env overrides)
 npm run dev            # same, with node --watch; GET /health
 npm test               # all tests
 npx jest tests/tasks.test.js           # one file
@@ -26,9 +26,30 @@ npx jest -t "filters by ?status=active" # one test by name
 
 `.gitignore` covers `node_modules/`, `taskr.db*`, `.env*` and `.claude/.mcp.json` (holds credentials). Never commit them.
 
-## Architecture
+## Folder Structure
 
-All code is under `src/`, file names are kebab-case, and each layer only calls the one below it: **routes -> services -> queries**.
+```
+src/
+  index.js            # builds the app, mounts routers, exports app
+  routes/             # HTTP layer, one file per resource + root.js, webhooks.js
+  services/           # business logic, one file per resource + email.js
+  db/
+    connection.js     # the single shared better-sqlite3 connection
+    queries/          # SQL, one file per resource
+    errors.js         # isUniqueViolation
+    seed.js           # dev schema + sample data
+  middleware/         # authenticate, request-logger, error-handler
+  utils/              # constants, validation, http-error, pagination
+tests/                # <resource>.test.js + schema.js
+```
+
+Each layer only calls the one below it:
+
+- **Routes call services.** Never import `db/` from a route.
+- **Services call queries.** Never call `db.prepare` from a service.
+- **Queries call the database connection** (`src/db/connection.js`). They hold no validation or business rules.
+
+Details:
 
 - `src/index.js` builds the Express app, mounts every router and exports the app; it only listens when run directly (`require.main === module`), so tests import the app. `errorHandler` is mounted last.
 - `src/routes/<resource>.js`: HTTP only. Each exports a named router (`usersRouter`, ...). Handlers parse params, call one service function, send the response, and pass errors to `next(err)`. No SQL, no validation. `comments.js` and `tags.js` (`taskTagsRouter`) are nested under `/tasks/:id/...` with `mergeParams`. `root.js` serves `GET /` and `GET /health`; `webhooks.js` serves `POST /webhooks/task-update`.
@@ -38,6 +59,12 @@ All code is under `src/`, file names are kebab-case, and each layer only calls t
 - `src/middleware/`: `authenticate.js` checks `x-api-key` against `API_KEY` (default `dev-key`), applied only to `DELETE /users/:id` and `DELETE /projects/:id`; `request-logger.js`; `error-handler.js` responds `err.status || 500` with `{ error }`.
 - `src/utils/`: `constants.js` (`PORT`, `VALID_TASK_STATUSES`, page sizes), `validation.js`, `http-error.js`, and `pagination.js` (`buildPaginationMeta`, unused until the Should-have pagination-metadata feature).
 - Valid task statuses are in `VALID_TASK_STATUSES` and the schema's CHECK constraint.
+
+## Naming Conventions
+
+- All files use kebab-case (`error-handler.js`, `http-error.js`). No camelCase or PascalCase file names.
+- Resource files use the plural resource name and the same name in every layer: `routes/tasks.js`, `services/tasks.js`, `db/queries/tasks.js`, `tests/tasks.test.js`.
+- Routers are named exports called `<resource>Router` (`tasksRouter`). Query functions start with `find`, `list`, `insert`, `update`, `delete` or `count`.
 
 ## Schema and tests
 
