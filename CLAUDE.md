@@ -18,6 +18,7 @@ npm run db:seed        # create schema + sample data in taskr.db (skips if users
 npm start              # node src/index.js, port 3000 (PORT env overrides)
 npm run dev            # same, with node --watch; GET /health
 npm test               # all tests
+npm run verify-app     # tests + boot server and check GET /health; run before committing
 npx jest tests/tasks.test.js           # one file
 npx jest -t "filters by ?status=active" # one test by name
 ```
@@ -41,6 +42,8 @@ src/
   middleware/         # authenticate, request-logger, error-handler
   utils/              # constants, validation, http-error, pagination
 tests/                # <resource>.test.js + schema.js
+scripts/
+  verify-app.js       # `npm run verify-app` pre-commit check
 ```
 
 Each layer only calls the one below it:
@@ -71,6 +74,8 @@ Details:
 - The schema is defined twice: in `src/db/seed.js` (dev DB) and in `tests/schema.js` (tests). Any schema change must be made in both.
 - Tests live in `tests/<resource>.test.js`. Each file sets `process.env.NODE_ENV = 'test'` before requiring `../src/index`, creates the schema in `beforeAll`, and wipes all tables in `beforeEach` (child tables first because of FKs). All test files share one in-memory DB per Jest worker.
 - Jest's `testMatch` is `**/tests/*.test.js`; a file named any other way won't run.
+
+Contribution workflow (commit convention, `verify-app`, no commits with failing tests) is in `CONTRIBUTING.md`.
 
 ## Context Files
 

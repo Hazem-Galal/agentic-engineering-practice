@@ -8,6 +8,7 @@
     "dev": "node --watch src/index.js",
     "test": "jest",
     "test:watch": "jest --watch",
+    "verify-app": "node scripts/verify-app.js",
     "db:seed": "node src/db/seed.js",
     "db:reset": "rm -f taskr.db && node src/db/seed.js"
   },
