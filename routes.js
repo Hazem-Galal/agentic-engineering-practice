@@ -24,59 +24,6 @@ router.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// ─── Projects ────────────────────────────────────────────────────────────────
-
-router.get('/projects', (req, res) => {
-  const projects = db.prepare('SELECT * FROM projects ORDER BY created_at DESC').all();
-  res.json(projects);
-});
-
-router.post('/projects', (req, res) => {
-  const { name, description, owner_id } = req.body;
-  if (!name || !isNonEmptyString(name)) {
-    return res.status(400).json({ error: 'name is required' });
-  }
-  const result = db.prepare(
-    'INSERT INTO projects (name, description, owner_id) VALUES (?, ?, ?)'
-  ).run(name, description || null, owner_id || null);
-  const project = db.prepare('SELECT * FROM projects WHERE id = ?').get(result.lastInsertRowid);
-  res.status(201).json(project);
-});
-
-router.get('/projects/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const project = db.prepare('SELECT * FROM projects WHERE id = ?').get(id);
-  if (!project) return res.status(404).json({ error: 'Project not found' });
-
-  // Lazy require to avoid circular dependency at module load time
-  const { getProjectStats } = require('./projectHelpers');
-  const stats = getProjectStats(id);
-  res.json({ ...project, stats });
-});
-
-router.put('/projects/:id', (req, res) => {
-  const id = parseInt(req.params.id);
-  const existing = db.prepare('SELECT * FROM projects WHERE id = ?').get(id);
-  if (!existing) return res.status(404).json({ error: 'Project not found' });
-
-  const name = req.body.name !== undefined ? req.body.name : existing.name;
-  const description = req.body.description !== undefined ? req.body.description : existing.description;
-  const owner_id = req.body.owner_id !== undefined ? req.body.owner_id : existing.owner_id;
-
-  db.prepare(
-    'UPDATE projects SET name = ?, description = ?, owner_id = ? WHERE id = ?'
-  ).run(name, description, owner_id, id);
-  const updated = db.prepare('SELECT * FROM projects WHERE id = ?').get(id);
-  res.json(updated);
-});
-
-router.delete('/projects/:id', authenticate, (req, res) => {
-  const id = parseInt(req.params.id);
-  const result = db.prepare('DELETE FROM projects WHERE id = ?').run(id);
-  if (result.changes === 0) return res.status(404).json({ error: 'Project not found' });
-  res.json({ deleted: true });
-});
-
 // ─── Tasks ────────────────────────────────────────────────────────────────────
 
 router.get('/tasks', (req, res) => {
@@ -261,11 +208,4 @@ router.delete('/tasks/:id/tags/:tagId', (req, res) => {
   res.json({ deleted: true });
 });
 
-// ─── Helper exported for projectHelpers.js (creates circular dep risk) ────────
-
-function getTasksForProject(projectId) {
-  return db.prepare('SELECT * FROM tasks WHERE project_id = ? ORDER BY created_at DESC').all(projectId);
-}
-
 module.exports = router;
-module.exports.getTasksForProject = getTasksForProject;
