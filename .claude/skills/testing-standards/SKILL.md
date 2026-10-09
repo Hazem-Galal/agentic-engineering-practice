@@ -8,8 +8,7 @@ description: How to write tests for the Taskr API - file naming, Jest + supertes
 ## File naming
 
 - Name each test file `<resource>.test.js` in lowercase, using the plural resource name: `tasks.test.js`, `projects.test.js`, `tags.test.js`. Put it in `tests/`.
-- Jest only picks up `tests/*.test.js` plus the two legacy files listed in `package.json`. A file named any other way won't run.
-- `tests/userTest.js` and `tests/test-projects.js` predate this convention. Don't copy their names. If you rename them to `users.test.js` / `projects.test.js`, remove them from `testMatch` too.
+- Jest only picks up `tests/*.test.js`. A file named any other way won't run.
 
 ## Setup: Jest + supertest + in-memory SQLite
 
@@ -19,14 +18,14 @@ The whole suite must run with `npm install` then `npm test`, and nothing else. A
 - environment variables set outside the test file
 - network access
 
-Each file sets `NODE_ENV=test` itself, which makes `DB.js` open `:memory:`. The app is imported without listening on a port.
+Each file sets `NODE_ENV=test` itself, which makes `src/db/connection.js` open `:memory:`. The app is imported without listening on a port.
 
 ```js
 process.env.NODE_ENV = 'test'; // must come before requiring the app or DB
 
 const request = require('supertest');
-const app = require('../index');
-const { db } = require('../DB');
+const app = require('../src/index');
+const { db } = require('../src/db/connection');
 const { createSchema } = require('./schema');
 
 beforeAll(() => {
@@ -41,7 +40,7 @@ beforeEach(() => {
 
 - Every test starts from a clean database. Seed the rows a test needs inside `beforeEach` or the test itself, never rely on another test's data.
 - All test files share one in-memory DB per Jest worker, so always wipe in `beforeEach`.
-- Build schema with `tests/schema.js`. Any schema change must also be made in `db/seed.js`.
+- Build schema with `tests/schema.js`. Any schema change must also be made in `src/db/seed.js`.
 - Send the `x-api-key` header (`dev-key` unless `API_KEY` is set) for endpoints behind `authenticate`.
 
 ## Coverage per endpoint
